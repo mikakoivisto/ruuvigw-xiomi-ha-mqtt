@@ -23,7 +23,7 @@ services:
     image: eclipse-mosquitto
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-  ruuvibridge-ha-mqtt:
+  ruuvigw-xiomi-ha-mqtt:
     image: mikakoivisto/ruuvigw-xiomi-ha-mqtt:latest
     links:
       - mqtt

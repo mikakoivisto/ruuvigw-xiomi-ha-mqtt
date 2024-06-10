@@ -111,7 +111,7 @@ class App {
         self.discoveredTags[mac] = true;
         this.publishDiscovery(out);
       }
-    } else if (measurement.data.indexOf("02010603029") !== -1) {
+    } else if (measurement.data.indexOf("020106030") !== -1) {
       // mi flora
       let data = hexToBytes(measurement.data)
       var dataType = data[23];

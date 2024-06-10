@@ -111,7 +111,36 @@ class App {
         self.discoveredTags[mac] = true;
         this.publishDiscovery(out);
       }
-    } 
+    } else if (measurement.data.indexOf("02010603029") !== -1) {
+      // mi flora
+      let data = hexToBytes(measurement.data)
+      var dataType = data[23];
+      var out = {
+        mac: measurement.mac,
+        type: "FlowerCare",
+        updated: measurement.ts
+      };
+      switch (dataType) {
+            case 7: // LIGHT
+                out.light = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]) + intToHex(data[data.length - 3]), 16);
+                break;
+            case 9: // COND 
+                out.conductivity = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16);
+                break;
+            case 8: // MOISTURE
+                out.moisture = (data[data.length - 1]);
+                break;
+            case 4: // TEMP
+                out.temperature = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
+                break;
+            default:
+                console.log("Flower unknown dataType", dataType);
+                return;
+      }
+      let mac = measurement.mac.replaceAll(':','').toLowerCase();
+
+      console.log(JSON.stringify(out));
+    }  
 
     return;
    

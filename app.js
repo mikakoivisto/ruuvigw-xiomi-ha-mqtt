@@ -296,8 +296,7 @@ class App {
             stateTopicPostfix: "conductivity",
           });
         }
-      }
-      break;
+        break;
     }
   }
 

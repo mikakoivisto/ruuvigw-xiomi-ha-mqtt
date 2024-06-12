@@ -99,7 +99,8 @@ class App {
         mac: measurement.mac,
         rssi: measurement.rssi,
         type: "ACT_MI_TEMP",
-        updated: measurement.ts
+        updated: measurement.ts,
+        rawData: measurement.data
       };
       let mac = measurement.mac.replaceAll(':','').toLowerCase();
 
@@ -120,6 +121,7 @@ class App {
         type: "Mi Flora",
         updated: measurement.ts,
         rssi: measurement.rssi,
+        rawData: measurement.data
       };
       var type;
       switch (dataType) {
@@ -324,7 +326,8 @@ class App {
       "updated": "{{value_json.updated}}",
       "rssi": "{{value_json.rssi}}",
       "battery": "{{value_json.battery}}",
-      "voltage": "{{value_json.voltage}}"
+      "voltage": "{{value_json.voltage}}",
+      "rawData": "{{value_json.rawData}}
     }`;
 
     let discoveryConfig = {

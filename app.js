@@ -103,7 +103,7 @@ class App {
       };
       let mac = measurement.mac.replaceAll(':','').toLowerCase();
 
-      console.log(JSON.stringify(out));
+      //console.log(JSON.stringify(out));
 
       logDebug(`Publishing to ${config.xiomiTopic}/${mac} data: ${JSON.stringify(out)}`);
       self.mqtt.publish(config.xiomiTopic + "/" + mac, JSON.stringify(out), { retain: true});
@@ -111,36 +111,50 @@ class App {
         self.discoveredTags[mac] = true;
         this.publishDiscovery(out);
       }
-    } else if (measurement.data.indexOf("020106030") !== -1) {
+    } else if (measurement.data.indexOf("02010603029") !== -1) {
       // mi flora
       let data = hexToBytes(measurement.data)
       var dataType = data[23];
       var out = {
         mac: measurement.mac,
-        type: "FlowerCare",
-        updated: measurement.ts
+        type: "Mi Flora",
+        updated: measurement.ts,
+        rssi: measurement.rssi,
       };
+      var type;
       switch (dataType) {
             case 7: // LIGHT
-                out.light = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]) + intToHex(data[data.length - 3]), 16);
-                break;
-            case 9: // COND 
-                out.conductivity = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16);
-                break;
+              type = "illuminance";
+              out.light = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]) + intToHex(data[data.length - 3]), 16);
+              break;
+            case 9: // CONDUCTIVITY 
+              type = "conductivity";
+              out.conductivity = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16);
+              break;
             case 8: // MOISTURE
-                out.moisture = (data[data.length - 1]);
-                break;
-            case 4: // TEMP
-                out.temperature = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
-                break;
+              type = "moisture";
+              out.moisture = (data[data.length - 1]);
+              break;
+            case 4: // TEMPERATURE
+              type = "temperature";
+              out.temperature = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
+              break;
             default:
-                console.log("Flower unknown dataType", dataType);
-                return;
+              console.log("FlowerCare unknown dataType", dataType, measurement.data);
+              return;
       }
       let mac = measurement.mac.replaceAll(':','').toLowerCase();
 
       console.log(JSON.stringify(out));
-    }  
+      logDebug(`Publishing to ${config.xiomiTopic}/${mac} data: ${JSON.stringify(out)}`);
+      self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true});
+      if (!self.discoveredTags[mac + type]) {
+        self.discoveredTags[mac + type] = true;
+        this.publishDiscovery(out);
+      }
+    } else if (measurement.data.indexOf("0201060302") !== -1)  {
+      console.log("Potential flower care data ", measurement.data);
+    }
 
     return;
    
@@ -234,6 +248,54 @@ class App {
           precision: 1
         });
         break;
+      case "Mi Flora":
+        if (measurement.temperature) {
+          this.publishSensorDiscovery(measurement, {
+            deviceClass: "temperature",
+            namePostfix: "temperature",
+            jsonAttribute: "temperature",
+            jsonAttributeMutator: "",
+            unitOfMeasurement: "°C",
+            precision: 1,
+            stateTopicPostfix: "temperature",
+          });
+        }
+        if (measurement.moisture) {
+          this.publishSensorDiscovery(measurement, {
+            deviceClass: "moisture",
+            namePostfix: "moisture",
+            jsonAttribute: "moisture",
+            jsonAttributeMutator: "",
+            unitOfMeasurement: "%",
+            precision: 0,
+            icon: "mdi:water-percent",
+            stateTopicPostfix: "moisture",
+          });
+        }
+        if (measurement.light) {
+          this.publishSensorDiscovery(measurement, {
+            deviceClass: "illuminance",
+            namePostfix: "illuminance",
+            jsonAttribute: "light",
+            jsonAttributeMutator: "",
+            unitOfMeasurement: "lx",
+            precision: 0,
+            stateTopicPostfix: "illuminance",
+          });
+        }
+        if (measurement.conductivity) {
+          this.publishSensorDiscovery(measurement, {
+            namePostfix: "conductivity",
+            jsonAttribute: "conductivity",
+            jsonAttributeMutator: "",
+            unitOfMeasurement: "µS/cm",
+            icon: "mdi:flash-circle",
+            precision: 0,
+            stateTopicPostfix: "conductivity",
+          });
+        }
+      }
+      break;
     }
   }
 
@@ -253,7 +315,7 @@ class App {
     let id = `xiomi_${mac}_${disco.jsonAttribute}`;
     let objectId = `${objectIdPrefix}${mac}_${disco.jsonAttribute}`;
     let confTopic = `${config.homeassistantTopicPrefix}/sensor/${objectId}/config`;
-    let stateTopic = `${config.xiomiTopic}/${mac}`;
+    let stateTopic = (disco.stateTopicPostfix && disco.stateTopicPostfix !== '') ? `${config.xiomiTopic}/${mac}/${stateTopicPostfix}` : `${config.xiomiTopic}/${mac}`;
     let deviceName = (measurement.name && measurement.name !== '') ? `${measurement.name}` : `Xiomi sensor ${mac.slice(-6)}`;
     let name = (measurement.name && measurement.name !== '') ? `${measurement.name} ${disco.namePostfix}` : `${disco.namePostfix}`;
     let valueTemplate = `{{ value_json.${disco.jsonAttribute}${disco.jsonAttributeMutator} | float | round(${disco.precision}) }}`;

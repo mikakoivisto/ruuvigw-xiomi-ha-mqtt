@@ -112,9 +112,14 @@ class App {
         this.publishDiscovery(out);
       }
       self.mqtt.publish(config.xiomiTopic + "/" + mac, JSON.stringify(out), { retain: true});
-    } else if (measurement.data.indexOf("02010603029") !== -1) {
+    } else if (measurement.data.indexOf("020106") !== -1 && measurement.data.indexOf("95FE") !== -1) {
       // mi flora
-      let data = hexToBytes(measurement.data)
+      let data = hexToBytes(measurement.data);
+      // Ensure that the data length is sufficient to contain the expected data types
+      if (data.length < 24) {
+          console.log("Data too short to contain valid Mi Flora information", measurement.data);
+          return;
+      }
       var dataType = data[23];
       var out = {
         mac: measurement.mac,

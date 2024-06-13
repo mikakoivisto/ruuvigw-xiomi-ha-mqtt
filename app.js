@@ -251,51 +251,47 @@ class App {
         });
         break;
       case "Mi Flora":
-        if (measurement.hasOwnProperty('temperature')) {
-          this.publishSensorDiscovery(measurement, {
-            deviceClass: "temperature",
-            namePostfix: "temperature",
-            jsonAttribute: "temperature",
-            jsonAttributeMutator: "",
-            unitOfMeasurement: "°C",
-            precision: 1,
-            stateTopicPostfix: "temperature",
-          });
-        }
-        if (measurement.hasOwnProperty('moisture')) {
-          this.publishSensorDiscovery(measurement, {
-            deviceClass: "moisture",
-            namePostfix: "moisture",
-            jsonAttribute: "moisture",
-            jsonAttributeMutator: "",
-            unitOfMeasurement: "%",
-            precision: 0,
-            icon: "mdi:water-percent",
-            stateTopicPostfix: "moisture",
-          });
-        }
-        if (measurement.hasOwnProperty('light')) {
-          this.publishSensorDiscovery(measurement, {
-            deviceClass: "illuminance",
-            namePostfix: "illuminance",
-            jsonAttribute: "light",
-            jsonAttributeMutator: "",
-            unitOfMeasurement: "lx",
-            precision: 0,
-            stateTopicPostfix: "illuminance",
-          });
-        }
-        if (measurement.hasOwnProperty('conductivity')) {
-          this.publishSensorDiscovery(measurement, {
-            namePostfix: "conductivity",
-            jsonAttribute: "conductivity",
-            jsonAttributeMutator: "",
-            unitOfMeasurement: "µS/cm",
-            icon: "mdi:flash-circle",
-            precision: 0,
-            stateTopicPostfix: "conductivity",
-          });
-        }
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "temperature",
+          namePostfix: "temperature",
+          jsonAttribute: "temperature",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "°C",
+          precision: 1,
+          stateTopicPostfix: "temperature",
+          battery: false,
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "moisture",
+          namePostfix: "moisture",
+          jsonAttribute: "moisture",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "%",
+          precision: 0,
+          icon: "mdi:water-percent",
+          stateTopicPostfix: "moisture",
+          battery: false,
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "illuminance",
+          namePostfix: "illuminance",
+          jsonAttribute: "light",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "lx",
+          precision: 0,
+          stateTopicPostfix: "illuminance",
+          battery: false,
+        });
+        this.publishSensorDiscovery(measurement, {
+          namePostfix: "conductivity",
+          jsonAttribute: "conductivity",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "µS/cm",
+          icon: "mdi:flash-circle",
+          precision: 0,
+          stateTopicPostfix: "conductivity",
+          battery: false,
+        });
         break;
     }
   }
@@ -320,12 +316,17 @@ class App {
     let deviceName = (measurement.name && measurement.name !== '') ? `${measurement.name}` : `Xiomi sensor ${mac.slice(-6)}`;
     let name = (measurement.name && measurement.name !== '') ? `${measurement.name} ${disco.namePostfix}` : `${disco.namePostfix}`;
     let valueTemplate = `{{ value_json.${disco.jsonAttribute}${disco.jsonAttributeMutator} | float | round(${disco.precision}) }}`;
-    let attributesTemplate = `{
+    let attributesTemplate = battery ? `{
       "mac": "{{value_json.mac}}",
       "updated": "{{value_json.updated}}",
       "rssi": "{{value_json.rssi}}",
       "battery": "{{value_json.battery}}",
       "voltage": "{{value_json.voltage}}",
+      "rawData": "{{value_json.rawData}}
+    }` : `{
+      "mac": "{{value_json.mac}}",
+      "updated": "{{value_json.updated}}",
+      "rssi": "{{value_json.rssi}}",
       "rawData": "{{value_json.rawData}}
     }`;
 

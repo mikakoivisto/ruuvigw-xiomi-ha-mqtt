@@ -316,7 +316,7 @@ class App {
     let id = `xiomi_${mac}_${disco.jsonAttribute}`;
     let objectId = `${objectIdPrefix}${mac}_${disco.jsonAttribute}`;
     let confTopic = `${config.homeassistantTopicPrefix}/sensor/${objectId}/config`;
-    let stateTopic = (disco.stateTopicPostfix && disco.stateTopicPostfix !== '') ? `${config.xiomiTopic}/${mac}/${stateTopicPostfix}` : `${config.xiomiTopic}/${mac}`;
+    let stateTopic = (disco.stateTopicPostfix && disco.stateTopicPostfix !== '') ? `${config.xiomiTopic}/${mac}/${disco.stateTopicPostfix}` : `${config.xiomiTopic}/${mac}`;
     let deviceName = (measurement.name && measurement.name !== '') ? `${measurement.name}` : `Xiomi sensor ${mac.slice(-6)}`;
     let name = (measurement.name && measurement.name !== '') ? `${measurement.name} ${disco.namePostfix}` : `${disco.namePostfix}`;
     let valueTemplate = `{{ value_json.${disco.jsonAttribute}${disco.jsonAttributeMutator} | float | round(${disco.precision}) }}`;

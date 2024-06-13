@@ -107,11 +107,11 @@ class App {
       //console.log(JSON.stringify(out));
 
       logDebug(`Publishing to ${config.xiomiTopic}/${mac} data: ${JSON.stringify(out)}`);
-      self.mqtt.publish(config.xiomiTopic + "/" + mac, JSON.stringify(out), { retain: true});
       if (!self.discoveredTags[mac]) {
         self.discoveredTags[mac] = true;
         this.publishDiscovery(out);
       }
+      self.mqtt.publish(config.xiomiTopic + "/" + mac, JSON.stringify(out), { retain: true});
     } else if (measurement.data.indexOf("02010603029") !== -1) {
       // mi flora
       let data = hexToBytes(measurement.data)
@@ -148,12 +148,12 @@ class App {
       let mac = measurement.mac.replaceAll(':','').toLowerCase();
 
       console.log(JSON.stringify(out));
-      logDebug(`Publishing to ${config.xiomiTopic}/${mac} data: ${JSON.stringify(out)}`);
-      self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true});
+      logDebug(`Publishing to ${config.xiomiTopic}/${mac}/${type} data: ${JSON.stringify(out)}`);
       if (!self.discoveredTags[mac + type]) {
         self.discoveredTags[mac + type] = true;
         this.publishDiscovery(out);
       }
+      self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true});
     } else if (measurement.data.indexOf("0201060302") !== -1)  {
       console.log("Potential flower care data ", measurement.data);
     }
@@ -251,7 +251,7 @@ class App {
         });
         break;
       case "Mi Flora":
-        if (measurement.temperature) {
+        if (measurement.hasOwnProperty('temperature')) {
           this.publishSensorDiscovery(measurement, {
             deviceClass: "temperature",
             namePostfix: "temperature",
@@ -262,7 +262,7 @@ class App {
             stateTopicPostfix: "temperature",
           });
         }
-        if (measurement.moisture) {
+        if (measurement.hasOwnProperty('moisture')) {
           this.publishSensorDiscovery(measurement, {
             deviceClass: "moisture",
             namePostfix: "moisture",
@@ -274,7 +274,7 @@ class App {
             stateTopicPostfix: "moisture",
           });
         }
-        if (measurement.light) {
+        if (measurement.hasOwnProperty('light')) {
           this.publishSensorDiscovery(measurement, {
             deviceClass: "illuminance",
             namePostfix: "illuminance",
@@ -285,7 +285,7 @@ class App {
             stateTopicPostfix: "illuminance",
           });
         }
-        if (measurement.conductivity) {
+        if (measurement.hasOwnProperty('conductivity')) {
           this.publishSensorDiscovery(measurement, {
             namePostfix: "conductivity",
             jsonAttribute: "conductivity",

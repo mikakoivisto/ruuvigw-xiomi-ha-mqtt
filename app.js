@@ -112,7 +112,7 @@ class App {
         this.publishDiscovery(out);
       }
       self.mqtt.publish(config.xiomiTopic + "/" + mac, JSON.stringify(out), { retain: true});
-    } else if (measurement.data.indexOf("020106") !== -1 && measurement.data.indexOf("95FE") !== -1) {
+    } else if (measurement.data.indexOf("020106") === 0 && measurement.data.indexOf("95FE", 8) === 10) {
       // mi flora
       let data = hexToBytes(measurement.data);
       // Ensure that the data length is sufficient to contain the expected data types

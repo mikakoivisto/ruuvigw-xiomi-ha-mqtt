@@ -149,8 +149,8 @@ class App {
 
       console.log(JSON.stringify(out));
       logDebug(`Publishing to ${config.xiomiTopic}/${mac}/${type} data: ${JSON.stringify(out)}`);
-      if (!self.discoveredTags[mac + type]) {
-        self.discoveredTags[mac + type] = true;
+      if (!self.discoveredTags[mac]) {
+        self.discoveredTags[mac] = true;
         this.publishDiscovery(out);
       }
       self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true});

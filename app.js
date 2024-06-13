@@ -163,8 +163,68 @@ class App {
         this.publishDiscovery(out);
       }
       self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true});
-    } else if (measurement.data.indexOf("0201060302") !== -1)  {
-      console.log("Potential flower care data ", measurement.data);
+    } else if (measurement.data.indexOf("020106151695FE") !== -1) {
+      // Xiaomi MJ_HT_V1 temperature & humidity sensor
+      var data = hexToBytes(measurement.data);
+
+      // Ensure that the data length is sufficient to contain the expected data types
+      if (data.length < 19) {
+        console.log("Data too short to contain valid MJ_HT_V1 information", measurement.data);
+        return;
+      }
+
+      var dataType = data[18];
+      var out = {
+        mac: measurement.mac,
+        type: "MJ_HT_V1",
+        updated: measurement.ts,
+        rssi: measurement.rssi,
+        rawData: measurement.data,
+        dataType: dataType,
+      };
+
+      var type;
+      switch (dataType) {
+        case 13: // temp and humidity
+          type = "temperature";
+          let humidity = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
+          let temp = parseInt(intToHex(data[data.length - 3]) + intToHex(data[data.length - 4]), 16) / 10.0;
+          let equilibriumVaporPressure = 611.2 * Math.exp(17.67 * (temp) / (243.5 + temp));
+          let v = Math.log((humidity / 100) * (equilibriumVaporPressure) / 611.2);
+          let dewPoint = -243.5 * v / (v - 17.67);
+          let absoluteHumidity = equilibriumVaporPressure * humidity * 0.021674 / (273.15 + temp);
+
+          out.humidity = humidity;
+          out.temperature = temp;
+          out.equilibriumVaporPressure = +equilibriumVaporPressure.toFixed(3);
+          out.dewPoint = +dewPoint.toFixed(3);
+          out.absoluteHumidity = +absoluteHumidity.toFixed(3);
+          break;
+        case 10: // battery
+          type = "battery";
+          out.battery = data[data.length - 1];
+          break;
+        case 6: // humidity
+          type = "humidity";
+          out.humidity = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
+          break;
+        case 4: // temp
+          type = "temperature";
+          out.temperature = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
+          break;
+        default:
+          console.log("MiTemp unknown dataType", dataType, data);
+          return;
+      }
+      let mac = measurement.mac.replaceAll(':', '').toLowerCase();
+
+      console.log(JSON.stringify(out));
+      logDebug(`Publishing to ${config.xiomiTopic}/${mac}/${type} data: ${JSON.stringify(out)}`);
+      if (!self.discoveredTags[mac + type]) {
+        self.discoveredTags[mac + type] = true;
+        this.publishDiscovery(out);
+      }
+      self.mqtt.publish(config.xiomiTopic + "/" + mac + "/" + type, JSON.stringify(out), { retain: true });
     }
   }
 
@@ -290,8 +350,72 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "%",
           precision: 0,
+          stateTopicPostfix: "battery",
           battery: false,
           skipAttributeCheck: true,
+        });
+        break;
+      case "MJ_HT_V1":
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "temperature",
+          namePostfix: "temperature",
+          jsonAttribute: "temperature",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "°C",
+          precision: 1,
+          battery: false,
+          stateTopicPostfix: "temperature",
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "humidity",
+          namePostfix: "humidity",
+          jsonAttribute: "humidity",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "%",
+          precision: 1,
+          battery: false,
+          stateTopicPostfix: measurement.dataType === 13 ? "temperature" : "humidity",
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "battery",
+          namePostfix: "battery",
+          jsonAttribute: "battery",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "%",
+          precision: 0,
+          battery: false,
+          stateTopicPostfix: "battery",
+        });
+        this.publishSensorDiscovery(measurement, {
+          namePostfix: "absolute humidity",
+          jsonAttribute: "absoluteHumidity",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "g/m³",
+          precision: 2,
+          icon: "mdi:water",
+          battery: false,
+          stateTopicPostfix: "temperature",
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "temperature",
+          namePostfix: "dew point",
+          jsonAttribute: "dewPoint",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "°C",
+          precision: 1,
+          icon: "mdi:water",
+          battery: false,
+          stateTopicPostfix: "temperature"
+        });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "pressure",
+          namePostfix: "equilibrium vapor pressure",
+          jsonAttribute: "equilibriumVaporPressure",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "Pa",
+          precision: 1,
+          battery: false,
+          stateTopicPostfix: "temperature"
         });
         break;
     }

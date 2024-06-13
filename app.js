@@ -267,6 +267,7 @@ class App {
           precision: 1,
           stateTopicPostfix: "temperature",
           battery: false,
+          skipAttributeCheck: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "moisture",
@@ -278,6 +279,7 @@ class App {
           icon: "mdi:water-percent",
           stateTopicPostfix: "moisture",
           battery: false,
+          skipAttributeCheck: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "illuminance",
@@ -288,6 +290,7 @@ class App {
           precision: 0,
           stateTopicPostfix: "illuminance",
           battery: false,
+          skipAttributeCheck: true,
         });
         this.publishSensorDiscovery(measurement, {
           namePostfix: "conductivity",
@@ -298,6 +301,7 @@ class App {
           precision: 0,
           stateTopicPostfix: "conductivity",
           battery: false,
+          skipAttributeCheck: true,
         });
         break;
     }
@@ -305,7 +309,7 @@ class App {
 
   publishSensorDiscovery(measurement, disco) {
     let self = this;
-    if (!measurement[disco.jsonAttribute]) {
+    if (!measurement[disco.jsonAttribute] && !disco.skipAttributeCheck) {
       logDebug(`${disco.jsonAttribute} not present in measurement for tag ${measurement.mac}, skipping discovery`);
       return;
     }

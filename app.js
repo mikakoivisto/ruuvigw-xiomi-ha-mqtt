@@ -141,6 +141,10 @@ class App {
               type = "temperature";
               out.temperature = parseInt(intToHex(data[data.length - 1]) + intToHex(data[data.length - 2]), 16) / 10.0;
               break;
+            case 5: // BATTERY
+              type = "battery";
+              out.battery = data[data.length - 1];
+              break;
             default:
               console.log("FlowerCare unknown dataType", dataType, measurement.data);
               return;
@@ -157,35 +161,6 @@ class App {
     } else if (measurement.data.indexOf("0201060302") !== -1)  {
       console.log("Potential flower care data ", measurement.data);
     }
-
-    return;
-   
-    this.publishSensorDiscovery(measurement, {
-      namePostfix: "absolute humidity",
-      jsonAttribute: "absoluteHumidity",
-      jsonAttributeMutator: "",
-      unitOfMeasurement: "g/m³",
-      precision: 2,
-      icon: "mdi:water"
-    });
-    this.publishSensorDiscovery(measurement, {
-      deviceClass: "temperature",
-      namePostfix: "dew point",
-      jsonAttribute: "dewPoint",
-      jsonAttributeMutator: "",
-      unitOfMeasurement: "°C",
-      precision: 1,
-      icon: "mdi:water"
-    });
-    this.publishSensorDiscovery(measurement, {
-      deviceClass: "pressure",
-      namePostfix: "equilibrium vapor pressure",
-      jsonAttribute: "equilibriumVaporPressure",
-      jsonAttributeMutator: " / 100.0",
-      unitOfMeasurement: "hPa",
-      precision: 1
-    });
-    
   }
 
   publishDiscovery(measurement) {
@@ -303,6 +278,16 @@ class App {
           battery: false,
           skipAttributeCheck: true,
         });
+        this.publishSensorDiscovery(measurement, {
+          deviceClass: "battery",
+          namePostfix: "battery",
+          jsonAttribute: "battery",
+          jsonAttributeMutator: "",
+          unitOfMeasurement: "%",
+          precision: 0,
+          battery: false,
+          skipAttributeCheck: true,
+        });
         break;
     }
   }
@@ -333,12 +318,13 @@ class App {
       "rssi": "{{value_json.rssi}}",
       "battery": "{{value_json.battery}}",
       "voltage": "{{value_json.voltage}}",
-      "rawData": "{{value_json.rawData}}
+      "rawData": "{{value_json.rawData}}"
     }` : `{
       "mac": "{{value_json.mac}}",
       "updated": "{{value_json.updated}}",
       "rssi": "{{value_json.rssi}}",
-      "rawData": "{{value_json.rawData}}
+      "rawData": "{{value_json.rawData}}",
+      "type": "{{value_json.type}}"
     }`;
 
     let discoveryConfig = {

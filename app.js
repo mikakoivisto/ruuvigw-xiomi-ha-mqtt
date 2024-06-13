@@ -199,6 +199,7 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "°C",
           precision: 1,
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "humidity",
@@ -207,6 +208,7 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "%",
           precision: 1,
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "voltage",
@@ -215,6 +217,7 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "V",
           precision: 3,
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "battery",
@@ -223,6 +226,7 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "%",
           precision: 0,
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           namePostfix: "absolute humidity",
@@ -230,7 +234,8 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "g/m³",
           precision: 2,
-          icon: "mdi:water"
+          icon: "mdi:water",
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "temperature",
@@ -239,7 +244,8 @@ class App {
           jsonAttributeMutator: "",
           unitOfMeasurement: "°C",
           precision: 1,
-          icon: "mdi:water"
+          icon: "mdi:water",
+          battery: true,
         });
         this.publishSensorDiscovery(measurement, {
           deviceClass: "pressure",
@@ -247,7 +253,8 @@ class App {
           jsonAttribute: "equilibriumVaporPressure",
           jsonAttributeMutator: "",
           unitOfMeasurement: "Pa",
-          precision: 1
+          precision: 1,
+          battery: true,
         });
         break;
       case "Mi Flora":
@@ -316,7 +323,7 @@ class App {
     let deviceName = (measurement.name && measurement.name !== '') ? `${measurement.name}` : `Xiomi sensor ${mac.slice(-6)}`;
     let name = (measurement.name && measurement.name !== '') ? `${measurement.name} ${disco.namePostfix}` : `${disco.namePostfix}`;
     let valueTemplate = `{{ value_json.${disco.jsonAttribute}${disco.jsonAttributeMutator} | float | round(${disco.precision}) }}`;
-    let attributesTemplate = battery ? `{
+    let attributesTemplate = disco.battery ? `{
       "mac": "{{value_json.mac}}",
       "updated": "{{value_json.updated}}",
       "rssi": "{{value_json.rssi}}",
